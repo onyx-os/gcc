@@ -1,6 +1,6 @@
 Summary: GNU Compiler Collection (C, C++, ...)
 Name: gcc
-Version: 14.2.0
+Version: 15.1.0
 Release: 1%{?dist}
 License: GPL-3.0-or-later
 Source0: https://ftp.gnu.org/gnu/%{name}/%{name}-%{version}/%{name}-%{version}.tar.xz
@@ -15,6 +15,10 @@ Requires: binutils
 # lto-wrapper needs make
 Requires: make
 Requires: gcc-libs
+
+Provides: g++ = %{version}-%{release}
+Provides: gcc-g++ = %{version}-%{release}
+Provides: gcc-c++ = %{version}-%{release}
 
 %description
 The gcc package contains the GNU Compiler Collection. You'll need this
@@ -46,9 +50,9 @@ export CXXFLAGS=$(echo $CXXFLAGS | sed -e 's/-Werror=format-security/-Wformat-se
 
 # For some reason you can't do all-gcc and all-target-libgcc at the same time, or the build system
 # tries to build all-target-libgcc with an xgcc that doesn't exist (because it wasn't built), weird...
-make all-gcc -j4
-make all-target-libgcc -j4
-make all-target-libstdc++-v3 all-target-libsanitizer -j4
+%make_build all-gcc
+%make_build all-target-libgcc
+%make_build all-target-libstdc++-v3 all-target-libsanitizer
 
 %install
 cd build
@@ -60,13 +64,14 @@ ln -sf gcc %{buildroot}%{_prefix}/bin/cc
 %files libs
 %{_libdir}/libgcc_s.so*
 %{_libdir}/libstdc++.so*
+%{_libdir}/libstdc++.modules.json
 
 %files
 %{_libdir}/gcc/
 %{_libexecdir}/gcc/
 %{_includedir}/c++/%{version}
 %{_bindir}/*
-%{_infodir}/*.info
+%{_infodir}/*
 %{_mandir}/man1/*
 %{_mandir}/man7/*
 %{_datadir}/gcc-%{version}/
@@ -75,3 +80,9 @@ ln -sf gcc %{buildroot}%{_prefix}/bin/cc
 %{_libdir}/lib*san*.*o*
 %{_libdir}/libsanitizer.spec
 # TODO: libstdc++.so-[...]gdb.py should be owned by this package
+
+%changelog
+* Sun Jul 6 2025 Pedro Falcato <pedro.falcato@gmail.com> - 15.1.0-1
+ - Update to gcc 15.1.0
+ - Add Provides: for C++ packages that Fedora expects
+ - Remove -j4 build hack
